@@ -31,12 +31,10 @@ const gameBoard = (function () {
   }
 
   function isBoardFilled() {
-    let isFilled = false;
+    let isFilled = true;
 
     for (const row of board) {
-      isFilled = !row.some((cell) => cell === null);
-
-      if (!isFilled) return isFilled;
+      if (isFilled) isFilled = !row.some((cell) => cell === null);
     }
 
     return isFilled;
