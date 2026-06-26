@@ -82,9 +82,6 @@ function createPlayer(name, marker) {
   function checkForWinningMarks() {
     const marksCount = marks.length;
 
-    const minMarkCoord = gameBoard.getMinCellCoord(),
-      maxMarkCoord = gameBoard.getMaxCellCoord();
-
     if (marksCount < 3) return false;
 
     let won = false;
@@ -102,88 +99,123 @@ function createPlayer(name, marker) {
       const shouldCheckForDiagonalAlignment =
         difference === 0 || difference === 2;
 
-      for (let j = i + 1; j < marksCount; j++) {
-        const mark = marks[j],
-          markToCheckRow = mark[0],
-          markToCheckColumn = mark[1];
+      let diagonalDirection = {
+        slanting: null,
+        previouslySlanting: [],
+      };
 
-        if (markToCheckRow === row) {
+      for (let j = i + 1; j < marksCount; j++) {
+        const markToCheck = {
+          mark: marks[j],
+          row: marks[j][0],
+          column: marks[j][1],
+        };
+
+        if (markToCheck.row === row) {
           marksInSameRowCount++;
-        } else if (markToCheckColumn === column) {
+        } else if (markToCheck.column === column) {
           marksInSameColumnCount++;
         }
 
         if (shouldCheckForDiagonalAlignment) {
-          marksInSameDiagonalCount = checkForDiagonalAlignment(
-            row,
-            column,
-            { mark, row: markToCheckRow, column: markToCheckColumn },
-            { min: minMarkCoord, max: maxMarkCoord },
-            marksInSameDiagonalCount,
-          );
+          ({ marksInSameDiagonalCount, diagonalDirection } =
+            checkForDiagonalAlignment(
+              row,
+              column,
+              markToCheck,
+              diagonalDirection,
+              marksInSameDiagonalCount,
+            ));
         }
       }
 
-      function hasWon() {
-        return (
-          marksInSameColumnCount === 2 ||
-          marksInSameRowCount === 2 ||
-          marksInSameDiagonalCount === 2
-        );
-      }
-
-      won = hasWon();
+      won =
+        marksInSameColumnCount === 2 ||
+        marksInSameRowCount === 2 ||
+        marksInSameDiagonalCount === 2;
     }
 
     return won;
   }
 
+  const markCoordsRange = {
+    min: gameBoard.getMinCellCoord(),
+    max: gameBoard.getMaxCellCoord(),
+  };
+
   function checkForDiagonalAlignment(
     row,
     column,
     markToCheck,
-    markCoordsRange,
+    diagonalDirection,
     marksInSameDiagonalCount,
   ) {
+    const [markToCheckRow, markToCheckColumn] = [
+      markToCheck.row,
+      markToCheck.column,
+    ];
+
     if (row === markCoordsRange.min) {
       if (column === markCoordsRange.min) {
         if (
-          (markToCheck.row === row + 1 && markToCheck.column === column + 1) ||
-          (markToCheck.row === row + 2 && markToCheck.column === column + 2)
+          (markToCheckRow === row + 1 && markToCheckColumn === column + 1) ||
+          (markToCheckRow === row + 2 && markToCheckColumn === column + 2)
         )
           marksInSameDiagonalCount++;
       } else if (column === markCoordsRange.max) {
         if (
-          (markToCheck.row === row + 1 && markToCheck.column === column - 1) ||
-          (markToCheck.row === row + 2 && markToCheck.column === column - 2)
+          (markToCheckRow === row + 1 && markToCheckColumn === column - 1) ||
+          (markToCheckRow === row + 2 && markToCheckColumn === column - 2)
         )
           marksInSameDiagonalCount++;
       }
     } else if (row === markCoordsRange.max) {
       if (column === markCoordsRange.max) {
         if (
-          (markToCheck.row === row - 1 && markToCheck.column === column - 1) ||
-          (markToCheck.row === row - 2 && markToCheck.column === column - 2)
+          (markToCheckRow === row - 1 && markToCheckColumn === column - 1) ||
+          (markToCheckRow === row - 2 && markToCheckColumn === column - 2)
         )
           marksInSameDiagonalCount++;
       } else if (column === markCoordsRange.min) {
         if (
-          (markToCheck.row === row - 1 && markToCheck.column === column + 1) ||
-          (markToCheck.row === row - 2 && markToCheck.column === column + 2)
+          (markToCheckRow === row - 1 && markToCheckColumn === column + 1) ||
+          (markToCheckRow === row - 2 && markToCheckColumn === column + 2)
         )
           marksInSameDiagonalCount++;
       }
     } else {
       if (
-        (markToCheck.row === row - 1 && markToCheck.column === column - 1) ||
-        (markToCheck.row === row + 1 && markToCheck.column === column + 1) ||
-        (markToCheck.row === row - 1 && markToCheck.column === column + 1) ||
-        (markToCheck.row === row + 1 && markToCheck.column === column - 1)
+        (markToCheckRow === row - 1 && markToCheckColumn === column - 1) ||
+        (markToCheckRow === row + 1 && markToCheckColumn === column + 1)
       )
+        diagonalDirection.slanting = "LEFT";
+      else if (
+        (markToCheckRow === row - 1 && markToCheckColumn === column + 1) ||
+        (markToCheckRow === row + 1 && markToCheckColumn === column - 1)
+      )
+        diagonalDirection.slanting = "RIGHT";
+
+      const isThereAMarkInThisDirection =
+        diagonalDirection.previouslySlanting.includes(
+          diagonalDirection.slanting,
+        );
+
+      if (
+        diagonalDirection.slanting &&
+        (isThereAMarkInThisDirection ||
+          !diagonalDirection.previouslySlanting.length)
+      ) {
         marksInSameDiagonalCount++;
+      }
+      console.log(getName(), diagonalDirection);
+
+      if (!isThereAMarkInThisDirection && diagonalDirection.slanting)
+        diagonalDirection.previouslySlanting.push(diagonalDirection.slanting);
+
+      diagonalDirection.slanting = null;
     }
 
-    return marksInSameDiagonalCount;
+    return { marksInSameDiagonalCount, diagonalDirection };
   }
 
   return { getName, getMarker, recordMark, checkForWinningMarks, marks };
