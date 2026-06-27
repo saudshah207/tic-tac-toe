@@ -53,8 +53,8 @@ const game = (function (playerOne, playerTwo) {
     isTie = true;
   }
 
-  function isGameTie() {
-    return isTie;
+  function isOver() {
+    return isTie || winner;
   }
 
   function setWinner(player) {
@@ -83,7 +83,12 @@ const game = (function (playerOne, playerTwo) {
     if (winnerAnnouncement != "") console.log(winnerAnnouncement);
   }
 
-  return { playerOne, playerTwo, tie, isGameTie, setWinner, checkWinner };
+  return {
+    playerOne,
+    playerTwo,
+    isOver,
+    checkWinner,
+  };
 })(createPlayer("Saud", "X"), createPlayer("Computer", "O"));
 
 function createPlayer(name, marker) {
@@ -241,6 +246,11 @@ function createPlayer(name, marker) {
   }
 
   function play(row, column) {
+    if (game.isOver()) {
+      console.log("Game is over! refresh to play again.");
+      return;
+    }
+
     const cell = [row, column];
 
     if (!gameBoard.mark(cell, getMarker())) {
