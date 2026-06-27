@@ -21,8 +21,10 @@ const gameBoard = (function () {
   }
 
   function mark(cell, marker) {
-    if (!board[cell[0]][cell[1]]) {
-      board[cell[0]][cell[1]] = marker;
+    const [row, column] = [cell[0], cell[1]];
+
+    if (board[row] !== undefined && board[row][column] === null) {
+      board[row][column] = marker;
 
       return true;
     }
