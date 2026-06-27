@@ -46,6 +46,8 @@ const gameBoard = (function () {
 })();
 
 const game = (function (playerOne, playerTwo) {
+  computer = null;
+
   winner = null;
   isTie = false;
 
@@ -60,13 +62,19 @@ const game = (function (playerOne, playerTwo) {
   function setWinner(player) {
     winner = player;
 
-    return `${player.getName()} has won!`;
+    return `${winner.getName()} has won!`;
+  }
+
+  function setComputerPlayer(userPlayer) {
+    computer = userPlayer === playerOne ? playerTwo : playerOne;
+  }
+
+  function getComputerPlayer() {
+    return computer;
   }
 
   function checkWinner() {
     console.log(gameBoard.getBoard());
-    console.log("Player:", playerOne.marks);
-    console.log("Computer:", playerTwo.marks);
 
     let winnerAnnouncement = "";
 
@@ -86,6 +94,8 @@ const game = (function (playerOne, playerTwo) {
   return {
     playerOne,
     playerTwo,
+    setComputerPlayer,
+    getComputerPlayer,
     isOver,
     checkWinner,
   };
@@ -246,6 +256,8 @@ function createPlayer(name, marker) {
   }
 
   function play(row, column) {
+    if (this === game.getComputerPlayer()) return;
+
     if (game.isOver()) {
       console.log("Game is over! refresh to play again.");
       return;
@@ -260,6 +272,8 @@ function createPlayer(name, marker) {
 
     recordMark(cell);
 
+    if (!game.getComputerPlayer()) game.setComputerPlayer(this);
+
     automatedPlay();
     game.checkWinner();
   }
@@ -267,7 +281,7 @@ function createPlayer(name, marker) {
   function automatedPlay() {
     if (gameBoard.isBoardFilled()) return;
 
-    const computer = game.playerTwo;
+    const computer = game.getComputerPlayer();
 
     let cell, marked;
 
@@ -283,5 +297,11 @@ function createPlayer(name, marker) {
     }
   }
 
-  return { getName, getMarker, recordMark, checkForWinningMarks, play, marks };
+  return {
+    getName,
+    getMarker,
+    checkForWinningMarks,
+    recordMark,
+    play,
+  };
 }
