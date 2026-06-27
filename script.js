@@ -43,7 +43,7 @@ const gameBoard = (function () {
   return { getBoard, getMinCellCoord, getMaxCellCoord, mark, isBoardFilled };
 })();
 
-const game = (function () {
+const game = (function (playerOne, playerTwo) {
   winner = null;
   isTie = false;
 
@@ -61,8 +61,28 @@ const game = (function () {
     return `${player.getName()} has won!`;
   }
 
-  return { tie, isGameTie, setWinner };
-})();
+  function checkWinner() {
+    console.log(gameBoard.getBoard());
+    console.log("Player:", playerOne.marks);
+    console.log("Computer:", playerTwo.marks);
+
+    let winnerAnnouncement = "";
+
+    if (playerOne.checkForWinningMarks())
+      winnerAnnouncement = setWinner(playerOne);
+    else if (playerTwo.checkForWinningMarks())
+      winnerAnnouncement = setWinner(playerTwo);
+    else if (gameBoard.isBoardFilled()) {
+      tie();
+
+      winnerAnnouncement = "Game ends in a tie!";
+    }
+
+    if (winnerAnnouncement != "") console.log(winnerAnnouncement);
+  }
+
+  return { playerOne, playerTwo, tie, isGameTie, setWinner, checkWinner };
+})(createPlayer("Saud", "X"), createPlayer("Computer", "O"));
 
 function createPlayer(name, marker) {
   const marks = [];
@@ -156,7 +176,7 @@ function createPlayer(name, marker) {
     ];
 
     if (row === markCoordsRange.min) {
-      if (column === markCoordsRange.min) {
+      if (column === row) {
         if (
           (markToCheckRow === row + 1 && markToCheckColumn === column + 1) ||
           (markToCheckRow === row + 2 && markToCheckColumn === column + 2)
@@ -170,7 +190,7 @@ function createPlayer(name, marker) {
           marksInSameDiagonalCount++;
       }
     } else if (row === markCoordsRange.max) {
-      if (column === markCoordsRange.max) {
+      if (column === row) {
         if (
           (markToCheckRow === row - 1 && markToCheckColumn === column - 1) ||
           (markToCheckRow === row - 2 && markToCheckColumn === column - 2)
@@ -218,59 +238,38 @@ function createPlayer(name, marker) {
     return { marksInSameDiagonalCount, diagonalDirection };
   }
 
-  return { getName, getMarker, recordMark, checkForWinningMarks, marks };
-}
+  function play(row, column) {
+    const cell = [row, column];
 
-const player = createPlayer("Saud", "X"),
-  computer = createPlayer("Computer", "O");
+    if (!gameBoard.mark(cell, getMarker())) {
+      console.log("Cell already taken or out of range! try another one.");
+      return;
+    }
 
-function play(row, column) {
-  const cell = [row, column];
+    recordMark(cell);
 
-  if (!gameBoard.mark(cell, player.getMarker())) {
-    console.log("Cell already taken! try another one.");
-    return;
+    automatedPlay();
+    game.checkWinner();
   }
 
-  player.recordMark(cell);
+  function automatedPlay() {
+    if (gameBoard.isBoardFilled()) return;
 
-  computerPlay();
-  checkWinner();
-}
+    const computer = game.playerTwo;
 
-function computerPlay() {
-  if (gameBoard.isBoardFilled()) return;
+    let cell, marked;
 
-  let cell, marked;
+    do {
+      cell = [getRandomCellCoord(), getRandomCellCoord()];
+      marked = gameBoard.mark(cell, computer.getMarker());
+    } while (!marked);
 
-  do {
-    cell = [getRandomCellCoord(), getRandomCellCoord()];
-    marked = gameBoard.mark(cell, computer.getMarker());
-  } while (!marked);
+    computer.recordMark(cell);
 
-  computer.recordMark(cell);
-
-  function getRandomCellCoord() {
-    return Math.floor(Math.random() * (gameBoard.getMaxCellCoord() + 1));
-  }
-}
-
-function checkWinner() {
-  console.log(gameBoard.getBoard());
-  console.log("Player:", player.marks);
-  console.log("Computer:", computer.marks);
-
-  let winnerAnnouncement = "";
-
-  if (player.checkForWinningMarks())
-    winnerAnnouncement = game.setWinner(player);
-  else if (computer.checkForWinningMarks())
-    winnerAnnouncement = game.setWinner(computer);
-  else if (gameBoard.isBoardFilled()) {
-    game.tie();
-
-    winnerAnnouncement = "Game ends in a tie!";
+    function getRandomCellCoord() {
+      return Math.floor(Math.random() * (gameBoard.getMaxCellCoord() + 1));
+    }
   }
 
-  if (winnerAnnouncement != "") console.log(winnerAnnouncement);
+  return { getName, getMarker, recordMark, checkForWinningMarks, play, marks };
 }
