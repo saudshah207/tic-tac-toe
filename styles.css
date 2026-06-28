@@ -1,0 +1,42 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-center {
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+body {
+  min-height: 100vh;
+}
+
+.game-board,
+.game-feedback {
+  margin-inline: auto;
+}
+
+.game-board {
+  max-width: 1000px;
+}
+
+.cell {
+  min-height: 100px;
+  flex: 30%;
+
+  border: 1px solid #000000;
+}
+
+.game-feedback {
+  width: max-content;
+}

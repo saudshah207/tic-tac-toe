@@ -46,10 +46,11 @@ const gameBoard = (function () {
 })();
 
 const game = (function (playerOne, playerTwo) {
-  computer = null;
+  let playerTakingTurn = playerOne,
+    computer = null;
 
-  winner = null;
-  isTie = false;
+  let winner = null,
+    isTie = false;
 
   function tie() {
     isTie = true;
@@ -62,11 +63,18 @@ const game = (function (playerOne, playerTwo) {
   function setWinner(player) {
     winner = player;
 
-    return `${winner.getName()} has won!`;
+    return `${winner.getName()} won!`;
   }
 
-  function setComputerPlayer(userPlayer) {
-    computer = userPlayer === playerOne ? playerTwo : playerOne;
+  function play(row, column) {
+    playerTakingTurn.play(row, column);
+
+    if (!computer)
+      playerTakingTurn = playerTakingTurn === playerOne ? playerTwo : playerOne;
+  }
+
+  function setComputerPlayer() {
+    computer = playerTwo;
   }
 
   function getComputerPlayer() {
@@ -88,18 +96,49 @@ const game = (function (playerOne, playerTwo) {
       winnerAnnouncement = "Game ends in a tie!";
     }
 
-    if (winnerAnnouncement != "") console.log(winnerAnnouncement);
+    return winnerAnnouncement;
   }
 
   return {
-    playerOne,
-    playerTwo,
+    play,
     setComputerPlayer,
     getComputerPlayer,
     isOver,
     checkWinner,
   };
-})(createPlayer("Saud", "X"), createPlayer("Computer", "O"));
+})(createPlayer("You", "X"), createPlayer("Computer", "O"));
+
+const displayController = (function () {
+  const board = gameBoard.getBoard();
+
+  const boardElement = document.querySelector(".game-board"),
+    feedbackElement = document.querySelector(".game-feedback");
+
+  function showFeedback(feedback) {
+    feedbackElement.textContent = feedback;
+  }
+
+  function renderMark(cell, marker) {
+    const cellElement = boardElement.querySelector(
+      `[data-row="${cell[0]}"][data-column="${cell[1]}"]`,
+    );
+
+    cellElement.textContent = marker;
+  }
+
+  function delegateClickEvent(event) {
+    const target = event.target,
+      isTargetGameBoardCell = target.closest(".cell");
+
+    if (isTargetGameBoardCell) {
+      game.play(+target.dataset.row, +target.dataset.column);
+    }
+  }
+
+  document.addEventListener("click", delegateClickEvent);
+
+  return { showFeedback, renderMark };
+})();
 
 function createPlayer(name, marker) {
   const marks = [];
@@ -259,23 +298,27 @@ function createPlayer(name, marker) {
     if (this === game.getComputerPlayer()) return;
 
     if (game.isOver()) {
-      console.log("Game is over! refresh to play again.");
+      displayController.showFeedback("Game is over! refresh to play again.");
       return;
     }
 
     const cell = [row, column];
 
     if (!gameBoard.mark(cell, getMarker())) {
-      console.log("Cell already taken or out of range! try another one.");
+      displayController.showFeedback(
+        "Cell already taken or out of range! try another one.",
+      );
       return;
     }
 
     recordMark(cell);
 
-    if (!game.getComputerPlayer()) game.setComputerPlayer(this);
+    displayController.renderMark(cell, this.getMarker());
+
+    if (!game.getComputerPlayer()) game.setComputerPlayer();
 
     automatedPlay();
-    game.checkWinner();
+    displayController.showFeedback(game.checkWinner());
   }
 
   function automatedPlay() {
@@ -291,6 +334,8 @@ function createPlayer(name, marker) {
     } while (!marked);
 
     computer.recordMark(cell);
+
+    displayController.renderMark(cell, computer.getMarker());
 
     function getRandomCellCoord() {
       return Math.floor(Math.random() * (gameBoard.getMaxCellCoord() + 1));
