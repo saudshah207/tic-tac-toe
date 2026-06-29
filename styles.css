@@ -22,7 +22,8 @@ body {
 }
 
 .game-board,
-.game-feedback {
+.game-feedback,
+.opponent-toggle {
   margin-inline: auto;
 }
 
@@ -39,4 +40,9 @@ body {
 
 .game-feedback {
   width: max-content;
+}
+
+.opponent-toggle {
+  display: block;
+  margin-top: 1.25rem;
 }

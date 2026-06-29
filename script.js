@@ -42,7 +42,20 @@ const gameBoard = (function () {
     return isFilled;
   }
 
-  return { getBoard, getMinCellCoord, getMaxCellCoord, mark, isBoardFilled };
+  function reset() {
+    for (const row of board) {
+      row.fill(null);
+    }
+  }
+
+  return {
+    getBoard,
+    getMinCellCoord,
+    getMaxCellCoord,
+    mark,
+    isBoardFilled,
+    reset,
+  };
 })();
 
 const game = (function (playerOne, playerTwo) {
@@ -67,14 +80,32 @@ const game = (function (playerOne, playerTwo) {
   }
 
   function play(row, column) {
-    playerTakingTurn.play(row, column);
+    const wasTurnSuccessfullyPlayed = playerTakingTurn.play(row, column);
 
-    if (!computer)
-      playerTakingTurn = playerTakingTurn === playerOne ? playerTwo : playerOne;
+    console.log(wasTurnSuccessfullyPlayed);
+
+    if (wasTurnSuccessfullyPlayed) {
+      displayController.showFeedback(game.checkWinner());
+
+      if (!computer)
+        playerTakingTurn =
+          playerTakingTurn === playerOne ? playerTwo : playerOne;
+      else computer.automatedPlay();
+
+      displayController.showFeedback(game.checkWinner());
+    }
   }
 
   function setComputerPlayer() {
     computer = playerTwo;
+
+    computer.setName("Computer");
+  }
+
+  function unsetComputerPlayer() {
+    computer = null;
+
+    playerTwo.setName("Player Two");
   }
 
   function getComputerPlayer() {
@@ -99,14 +130,40 @@ const game = (function (playerOne, playerTwo) {
     return winnerAnnouncement;
   }
 
+  function reset() {
+    playerTakingTurn = playerOne;
+    winner = null;
+    isTie = false;
+
+    gameBoard.reset();
+
+    playerOne.resetMarks();
+    if (!computer) playerTwo.resetMarks();
+    else computer.resetMarks();
+  }
+
+  function toggleOpponent(toggle) {
+    displayController.resetBoard();
+    reset();
+
+    if (!getComputerPlayer()) setComputerPlayer();
+    else unsetComputerPlayer();
+
+    toggle.textContent = toggle.textContent.endsWith("computer")
+      ? "Play against a friend"
+      : "Play against computer";
+
+    displayController.showFeedback("");
+  }
+
   return {
     play,
-    setComputerPlayer,
     getComputerPlayer,
     isOver,
     checkWinner,
+    toggleOpponent,
   };
-})(createPlayer("You", "X"), createPlayer("Computer", "O"));
+})(createPlayer("Player One", "X"), createPlayer("Player Two", "O"));
 
 const displayController = (function () {
   const board = gameBoard.getBoard();
@@ -126,25 +183,43 @@ const displayController = (function () {
     cellElement.textContent = marker;
   }
 
+  function resetBoard() {
+    for (const cell of boardElement.children) {
+      cell.textContent = "";
+    }
+  }
+
   function delegateClickEvent(event) {
-    const target = event.target,
-      isTargetGameBoardCell = target.closest(".cell");
+    const target = event.target;
+
+    const isTargetGameBoardCell = target.closest(".cell"),
+      isTargetOpponentToggle = target.closest(".opponent-toggle");
 
     if (isTargetGameBoardCell) {
       game.play(+target.dataset.row, +target.dataset.column);
+    } else if (isTargetOpponentToggle) {
+      game.toggleOpponent(target);
     }
   }
 
   document.addEventListener("click", delegateClickEvent);
 
-  return { showFeedback, renderMark };
+  return { showFeedback, renderMark, resetBoard };
 })();
 
 function createPlayer(name, marker) {
   const marks = [];
 
+  function resetMarks() {
+    marks.splice(0);
+  }
+
   function getName() {
     return name;
+  }
+
+  function setName(newName) {
+    if (newName && newName != "") name = newName;
   }
 
   function getMarker() {
@@ -295,11 +370,11 @@ function createPlayer(name, marker) {
   }
 
   function play(row, column) {
-    if (this === game.getComputerPlayer()) return;
+    if (this === game.getComputerPlayer()) return false;
 
     if (game.isOver()) {
       displayController.showFeedback("Game is over! refresh to play again.");
-      return;
+      return false;
     }
 
     const cell = [row, column];
@@ -308,34 +383,31 @@ function createPlayer(name, marker) {
       displayController.showFeedback(
         "Cell already taken or out of range! try another one.",
       );
-      return;
+      return false;
     }
 
     recordMark(cell);
 
-    displayController.renderMark(cell, this.getMarker());
+    displayController.renderMark(cell, getMarker());
 
-    if (!game.getComputerPlayer()) game.setComputerPlayer();
-
-    automatedPlay();
-    displayController.showFeedback(game.checkWinner());
+    return true;
   }
 
   function automatedPlay() {
-    if (gameBoard.isBoardFilled()) return;
-
-    const computer = game.getComputerPlayer();
+    if (gameBoard.isBoardFilled() || game.isOver()) return;
 
     let cell, marked;
 
+    const marker = getMarker();
+
     do {
       cell = [getRandomCellCoord(), getRandomCellCoord()];
-      marked = gameBoard.mark(cell, computer.getMarker());
+      marked = gameBoard.mark(cell, marker);
     } while (!marked);
 
-    computer.recordMark(cell);
+    recordMark(cell);
 
-    displayController.renderMark(cell, computer.getMarker());
+    displayController.renderMark(cell, marker);
 
     function getRandomCellCoord() {
       return Math.floor(Math.random() * (gameBoard.getMaxCellCoord() + 1));
@@ -344,9 +416,10 @@ function createPlayer(name, marker) {
 
   return {
     getName,
-    getMarker,
+    setName,
     checkForWinningMarks,
-    recordMark,
     play,
+    automatedPlay,
+    resetMarks,
   };
 }
