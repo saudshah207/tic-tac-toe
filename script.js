@@ -58,16 +58,41 @@ const gameBoard = (function () {
   };
 })();
 
+const computer = (function () {
+  const player = createPlayer("Computer", "O");
+
+  player.play = function () {
+    let cell, marked;
+
+    const marker = player.getMarker();
+
+    do {
+      cell = [getRandomCellCoord(), getRandomCellCoord()];
+      marked = gameBoard.mark(cell, marker);
+    } while (!marked);
+
+    player.recordMark(cell);
+
+    displayController.renderMark(cell, marker);
+
+    return true;
+
+    function getRandomCellCoord() {
+      return Math.floor(Math.random() * (gameBoard.getMaxCellCoord() + 1));
+    }
+  };
+
+  return player;
+})();
+
 const game = (function (playerOne, playerTwo) {
-  let playerTakingTurn = playerOne,
-    computer = null;
+  let playerTakingTurn = playerOne;
+
+  let isPlayingAgainstComputer = true,
+    isRoundComplete = false;
 
   let winner = null,
     isTie = false;
-
-  function tie() {
-    isTie = true;
-  }
 
   function isOver() {
     return isTie || winner;
@@ -80,36 +105,39 @@ const game = (function (playerOne, playerTwo) {
   }
 
   function play(row, column) {
+    const isPlayerTakingTurnPlayerOne = playerTakingTurn === playerOne;
+
+    if (isOver()) {
+      if (isPlayerTakingTurnPlayerOne)
+        displayController.showFeedback("Game is over! refresh to play again.");
+      else playerTakingTurn = playerOne;
+
+      return;
+    }
+
     const wasTurnSuccessfullyPlayed = playerTakingTurn.play(row, column);
 
-    console.log(wasTurnSuccessfullyPlayed);
+    if (isPlayerTakingTurnPlayerOne) isRoundComplete = false;
 
     if (wasTurnSuccessfullyPlayed) {
       displayController.showFeedback(game.checkWinner());
 
-      if (!computer)
-        playerTakingTurn =
-          playerTakingTurn === playerOne ? playerTwo : playerOne;
-      else computer.automatedPlay();
+      playerTakingTurn = isPlayerTakingTurnPlayerOne ? playerTwo : playerOne;
 
-      displayController.showFeedback(game.checkWinner());
+      if (isPlayingAgainstComputer && !isRoundComplete) {
+        isRoundComplete = true;
+
+        play();
+      }
     }
   }
 
-  function setComputerPlayer() {
-    computer = playerTwo;
-
-    computer.setName("Computer");
+  function playAgainstComputer() {
+    playerTwo = computer;
   }
 
-  function unsetComputerPlayer() {
-    computer = null;
-
-    playerTwo.setName("Player Two");
-  }
-
-  function getComputerPlayer() {
-    return computer;
+  function playAgainstHuman() {
+    playerTwo = createPlayer("Player Two", "O");
   }
 
   function checkWinner() {
@@ -122,7 +150,7 @@ const game = (function (playerOne, playerTwo) {
     else if (playerTwo.checkForWinningMarks())
       winnerAnnouncement = setWinner(playerTwo);
     else if (gameBoard.isBoardFilled()) {
-      tie();
+      isTie = true;
 
       winnerAnnouncement = "Game ends in a tie!";
     }
@@ -138,16 +166,17 @@ const game = (function (playerOne, playerTwo) {
     gameBoard.reset();
 
     playerOne.resetMarks();
-    if (!computer) playerTwo.resetMarks();
-    else computer.resetMarks();
+    playerTwo.resetMarks();
   }
 
   function toggleOpponent(toggle) {
     displayController.resetBoard();
     reset();
 
-    if (!getComputerPlayer()) setComputerPlayer();
-    else unsetComputerPlayer();
+    if (!isPlayingAgainstComputer) playAgainstComputer();
+    else playAgainstHuman();
+
+    isPlayingAgainstComputer = !isPlayingAgainstComputer;
 
     toggle.textContent = toggle.textContent.endsWith("computer")
       ? "Play against a friend"
@@ -158,12 +187,10 @@ const game = (function (playerOne, playerTwo) {
 
   return {
     play,
-    getComputerPlayer,
-    isOver,
     checkWinner,
     toggleOpponent,
   };
-})(createPlayer("Player One", "X"), createPlayer("Player Two", "O"));
+})(createPlayer("Player One", "X"), computer);
 
 const displayController = (function () {
   const board = gameBoard.getBoard();
@@ -370,13 +397,6 @@ function createPlayer(name, marker) {
   }
 
   function play(row, column) {
-    if (this === game.getComputerPlayer()) return false;
-
-    if (game.isOver()) {
-      displayController.showFeedback("Game is over! refresh to play again.");
-      return false;
-    }
-
     const cell = [row, column];
 
     if (!gameBoard.mark(cell, getMarker())) {
@@ -393,33 +413,12 @@ function createPlayer(name, marker) {
     return true;
   }
 
-  function automatedPlay() {
-    if (gameBoard.isBoardFilled() || game.isOver()) return;
-
-    let cell, marked;
-
-    const marker = getMarker();
-
-    do {
-      cell = [getRandomCellCoord(), getRandomCellCoord()];
-      marked = gameBoard.mark(cell, marker);
-    } while (!marked);
-
-    recordMark(cell);
-
-    displayController.renderMark(cell, marker);
-
-    function getRandomCellCoord() {
-      return Math.floor(Math.random() * (gameBoard.getMaxCellCoord() + 1));
-    }
-  }
-
   return {
     getName,
-    setName,
     checkForWinningMarks,
+    getMarker,
+    recordMark,
     play,
-    automatedPlay,
     resetMarks,
   };
 }
