@@ -3,27 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css" />
 
     <title>Tic Tac Toe</title>
   </head>
-  <body>
-    <div class="game-board flex flex-wrap">
-      <div class="cell flex flex-center" data-row="0" data-column="0"></div>
-      <div class="cell flex flex-center" data-row="0" data-column="1"></div>
-      <div class="cell flex flex-center" data-row="0" data-column="2"></div>
-      <div class="cell flex flex-center" data-row="1" data-column="0"></div>
-      <div class="cell flex flex-center" data-row="1" data-column="1"></div>
-      <div class="cell flex flex-center" data-row="1" data-column="2"></div>
-      <div class="cell flex flex-center" data-row="2" data-column="0"></div>
-      <div class="cell flex flex-center" data-row="2" data-column="1"></div>
-      <div class="cell flex flex-center" data-row="2" data-column="2"></div>
-    </div>
+  <body class="flex flex-center flex-column">
+      <div class="game-board flex flex-wrap">
+        <div class="cell flex flex-center" data-row="0" data-column="0"></div>
+        <div class="cell flex flex-center" data-row="0" data-column="1"></div>
+        <div class="cell flex flex-center" data-row="0" data-column="2"></div>
+        <div class="cell flex flex-center" data-row="1" data-column="0"></div>
+        <div class="cell flex flex-center" data-row="1" data-column="1"></div>
+        <div class="cell flex flex-center" data-row="1" data-column="2"></div>
+        <div class="cell flex flex-center" data-row="2" data-column="0"></div>
+        <div class="cell flex flex-center" data-row="2" data-column="1"></div>
+        <div class="cell flex flex-center" data-row="2" data-column="2"></div>
+      </div>
 
-    <p class="game-feedback"></p>
+      <p class="game-feedback"></p>
 
-    <button class="opponent-toggle">Play against a friend</button>
-
+      <button class="opponent-toggle">Play against a friend</button>
     <script src="script.js"></script>
   </body>
 </html>

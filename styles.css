@@ -8,6 +8,10 @@
   display: flex;
 }
 
+.flex-column {
+  flex-direction: column;
+}
+
 .flex-center {
   align-items: center;
   justify-content: center;
@@ -19,30 +23,31 @@
 
 body {
   min-height: 100vh;
-}
 
-.game-board,
-.game-feedback,
-.opponent-toggle {
-  margin-inline: auto;
-}
-
-.game-board {
-  max-width: 1000px;
+  gap: 1.25rem;
 }
 
 .cell {
-  min-height: 100px;
+  height: 100px;
+  width: 100px;
+
   flex: 30%;
 
-  border: 1px solid #000000;
+  --cell-border: 1px solid #000000;
+  border-right: var(--cell-border);
+  border-bottom: var(--cell-border);
+}
+
+.cell:nth-child(3n) {
+  border-right: none;
+}
+
+.cell:nth-child(7),
+.cell:nth-child(8),
+.cell:nth-child(9) {
+  border-bottom: none;
 }
 
 .game-feedback {
   width: max-content;
-}
-
-.opponent-toggle {
-  display: block;
-  margin-top: 1.25rem;
 }
