@@ -178,10 +178,21 @@ const game = (function (playerOne, playerTwo) {
       playingAgainstMessage = "You are now playing against the computer.";
 
       playAgainstComputer();
+
+      displayController.updatePlayerNamesHtml(
+        playerOne.getName(),
+        playerTwo.getName(),
+      );
     } else {
       playingAgainstMessage = "You are now playing against a friend.";
 
       playAgainstHuman();
+
+      displayController.updatePlayerNamesHtml(
+        playerOne.getName(),
+        playerTwo.getName(),
+        true,
+      );
     }
 
     isPlayingAgainstComputer = !isPlayingAgainstComputer;
@@ -193,11 +204,17 @@ const game = (function (playerOne, playerTwo) {
     reset(playingAgainstMessage);
   }
 
+  function updatePlayerName(player, name) {
+    player = player === "one" ? playerOne : playerTwo;
+    player.setName(name);
+  }
+
   return {
     play,
     checkWinner,
     reset,
     toggleOpponent,
+    updatePlayerName,
   };
 })(createPlayer("Player One", "X"), computer);
 
@@ -206,6 +223,33 @@ const displayController = (function () {
 
   const boardElement = document.querySelector(".game-board"),
     feedbackElement = document.querySelector(".game-feedback");
+
+  const againstFriendPlayerNamesHtml = buildPlayerNamesHtml(true),
+    againstComputerPlayerNamesHtml = buildPlayerNamesHtml();
+
+  function buildPlayerNamesHtml(isPlayingAgainstFriend = false) {
+    const wrapper = document.createElement("div"),
+      playerOneNameInput = document.createElement("input"),
+      vsElement = document.createElement("span"),
+      playerTwoNameElement = isPlayingAgainstFriend
+        ? document.createElement("input")
+        : document.createElement("span");
+
+    wrapper.classList.add("player-names", "flex", "flex-wrap");
+    playerOneNameInput.classList.add("player-name", "player-name-input");
+    if (isPlayingAgainstFriend) {
+      playerTwoNameElement.classList.add("player-name", "player-name-input");
+    } else playerTwoNameElement.classList.add("player-name");
+
+    playerOneNameInput.setAttribute("data-player", "one");
+    playerTwoNameElement.setAttribute("data-player", "two");
+
+    vsElement.textContent = "vs";
+
+    wrapper.append(playerOneNameInput, vsElement, playerTwoNameElement);
+
+    return wrapper;
+  }
 
   function showFeedback(feedback) {
     feedbackElement.textContent = feedback;
@@ -223,6 +267,33 @@ const displayController = (function () {
     for (const cell of boardElement.children) {
       cell.textContent = "";
     }
+  }
+
+  function updatePlayerNamesHtml(
+    playerOneName,
+    playerTwoName,
+    isPlayingAgainstFriend = false,
+  ) {
+    const previousHtml = document.querySelector(".player-names");
+    previousHtml.remove();
+
+    let html = againstComputerPlayerNamesHtml;
+
+    let playerTwoNameElement = html.querySelector("[data-player='two']");
+    playerTwoNameElement.textContent = playerTwoName;
+
+    if (isPlayingAgainstFriend) {
+      html = againstFriendPlayerNamesHtml;
+
+      playerTwoNameElement = html.querySelector("[data-player='two']");
+      playerTwoNameElement.value = playerTwoName;
+    }
+
+    const playerOneNameElement = html.querySelector("[data-player='one']");
+
+    playerOneNameElement.value = playerOneName;
+
+    boardElement.insertAdjacentElement("afterend", html);
   }
 
   function delegateClickEvent(event) {
@@ -243,7 +314,20 @@ const displayController = (function () {
 
   document.addEventListener("click", delegateClickEvent);
 
-  return { showFeedback, renderMark, resetBoard };
+  function changePlayerNames(event) {
+    const target = event.target;
+
+    const isTargetPlayerNameInput = target.closest(
+      ".player-name-input[data-player]",
+    );
+
+    if (isTargetPlayerNameInput)
+      game.updatePlayerName(target.dataset.player, target.value);
+  }
+
+  document.addEventListener("change", changePlayerNames);
+
+  return { showFeedback, renderMark, resetBoard, updatePlayerNamesHtml };
 })();
 
 function createPlayer(name, marker) {
@@ -427,6 +511,7 @@ function createPlayer(name, marker) {
 
   return {
     getName,
+    setName,
     checkForWinningMarks,
     getMarker,
     recordMark,

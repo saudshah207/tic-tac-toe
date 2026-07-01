@@ -24,7 +24,8 @@
 body {
   min-height: 100vh;
 
-  gap: 1.25rem;
+  --standard-gap: 1.25rem;
+  gap: var(--standard-gap);
 }
 
 .cell {
@@ -46,6 +47,27 @@ body {
 .cell:nth-child(8),
 .cell:nth-child(9) {
   border-bottom: none;
+}
+
+.player-names {
+  width: 100%;
+
+  justify-content: center;
+  gap: var(--standard-gap);
+}
+
+.player-name {
+  text-align: center;
+  
+  flex-basis: 200px;
+  min-width: min(180px, 100%);
+}
+
+.player-name-input {
+  border: none;
+
+  font-family: inherit;
+  font-size: 1rem;
 }
 
 .game-feedback {
