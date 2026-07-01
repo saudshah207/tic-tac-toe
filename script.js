@@ -101,7 +101,7 @@ const game = (function (playerOne, playerTwo) {
   function setWinner(player) {
     winner = player;
 
-    return `${winner.getName()} won!`;
+    return `${winner.getName()} (${winner.getMarker()}) won!`;
   }
 
   function play(row, column) {
@@ -109,7 +109,7 @@ const game = (function (playerOne, playerTwo) {
 
     if (isOver()) {
       if (isPlayerTakingTurnPlayerOne)
-        displayController.showFeedback("Game is over! refresh to play again.");
+        displayController.showFeedback("Game is over! restart to play again.");
       else playerTakingTurn = playerOne;
 
       return;
@@ -141,8 +141,6 @@ const game = (function (playerOne, playerTwo) {
   }
 
   function checkWinner() {
-    console.log(gameBoard.getBoard());
-
     let winnerAnnouncement = "";
 
     if (playerOne.checkForWinningMarks())
@@ -158,7 +156,7 @@ const game = (function (playerOne, playerTwo) {
     return winnerAnnouncement;
   }
 
-  function reset() {
+  function reset(feedback = "") {
     playerTakingTurn = playerOne;
     winner = null;
     isTie = false;
@@ -167,14 +165,24 @@ const game = (function (playerOne, playerTwo) {
 
     playerOne.resetMarks();
     playerTwo.resetMarks();
+
+    displayController.resetBoard();
+
+    displayController.showFeedback(feedback);
   }
 
   function toggleOpponent(toggle) {
-    displayController.resetBoard();
-    reset();
+    let playingAgainstMessage;
 
-    if (!isPlayingAgainstComputer) playAgainstComputer();
-    else playAgainstHuman();
+    if (!isPlayingAgainstComputer) {
+      playingAgainstMessage = "You are now playing against the computer.";
+
+      playAgainstComputer();
+    } else {
+      playingAgainstMessage = "You are now playing against a friend.";
+
+      playAgainstHuman();
+    }
 
     isPlayingAgainstComputer = !isPlayingAgainstComputer;
 
@@ -182,12 +190,13 @@ const game = (function (playerOne, playerTwo) {
       ? "Play against a friend"
       : "Play against computer";
 
-    displayController.showFeedback("");
+    reset(playingAgainstMessage);
   }
 
   return {
     play,
     checkWinner,
+    reset,
     toggleOpponent,
   };
 })(createPlayer("Player One", "X"), computer);
@@ -220,10 +229,13 @@ const displayController = (function () {
     const target = event.target;
 
     const isTargetGameBoardCell = target.closest(".cell"),
+      isTargetRestartButton = target.closest(".restart"),
       isTargetOpponentToggle = target.closest(".opponent-toggle");
 
     if (isTargetGameBoardCell) {
       game.play(+target.dataset.row, +target.dataset.column);
+    } else if (isTargetRestartButton) {
+      game.reset();
     } else if (isTargetOpponentToggle) {
       game.toggleOpponent(target);
     }
