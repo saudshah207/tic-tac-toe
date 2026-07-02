@@ -90,11 +90,11 @@ const game = (function (playerOne, playerTwo) {
 
   let isPlayingAgainstComputer = true,
     isRoundComplete = false;
+    
+  const humanOpponent = createPlayer("Player Two", "O");
 
   let winner = null,
     isTie = false;
-
-  let humanOpponentName = null;
 
   function isOver() {
     return isTie || winner;
@@ -139,8 +139,7 @@ const game = (function (playerOne, playerTwo) {
   }
 
   function playAgainstHuman() {
-    humanOpponentName = humanOpponentName ? humanOpponentName : "Player Two";
-    playerTwo = createPlayer(humanOpponentName, "O");
+    playerTwo = humanOpponent;
   }
 
   function checkWinner() {
@@ -208,12 +207,7 @@ const game = (function (playerOne, playerTwo) {
   }
 
   function updatePlayerName(player, name) {
-    if (player === "one") {
-      player = playerOne;
-    } else {
-      player = playerTwo;
-      humanOpponentName = name;
-    }
+    player = player === "one" ? playerOne : playerTwo;
 
     player.setName(name);
   }
