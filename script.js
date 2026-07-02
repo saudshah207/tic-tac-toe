@@ -174,11 +174,7 @@ const game = (function (playerOne, playerTwo) {
   }
 
   function toggleOpponent(toggle) {
-    let playingAgainstMessage;
-
     if (!isPlayingAgainstComputer) {
-      playingAgainstMessage = "You are now playing against the computer.";
-
       playAgainstComputer();
 
       displayController.updatePlayerNamesHtml(
@@ -186,8 +182,6 @@ const game = (function (playerOne, playerTwo) {
         playerTwo.getName(),
       );
     } else {
-      playingAgainstMessage = "You are now playing against a friend.";
-
       playAgainstHuman();
 
       displayController.updatePlayerNamesHtml(
@@ -203,7 +197,7 @@ const game = (function (playerOne, playerTwo) {
       ? "Play against a friend"
       : "Play against computer";
 
-    reset(playingAgainstMessage);
+    reset();
   }
 
   function updatePlayerName(player, name) {
