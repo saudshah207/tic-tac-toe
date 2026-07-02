@@ -21,6 +21,10 @@
   flex-wrap: wrap;
 }
 
+.text-center {
+  text-align: center;
+}
+
 body {
   min-height: 100vh;
 
@@ -28,9 +32,16 @@ body {
   gap: var(--standard-gap);
 }
 
+.game-board {
+  --board-preferred-width: 400px;
+
+  max-width: var(--board-preferred-width);
+}
+
 .cell {
-  height: 100px;
-  width: 100px;
+  --cell-preferred-dimension: calc(var(--board-preferred-width) / 3);
+  height: var(--cell-preferred-dimension);
+  width: var(--cell-preferred-dimension);
 
   flex: 30%;
 
@@ -57,10 +68,12 @@ body {
 }
 
 .player-name {
+  --preferred-width: 200px;
+
   text-align: center;
   
-  flex-basis: 200px;
-  min-width: min(180px, 100%);
+  flex-basis: var(--preferred-width);
+  min-width: min(var(--preferred-width), 100%);
 }
 
 .player-name-input {
