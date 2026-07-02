@@ -4,6 +4,11 @@
   box-sizing: border-box;
 }
 
+:root {
+  --standard-gap: 1.25rem;
+  --standard-border-radius: 0.25rem;
+}
+
 .flex {
   display: flex;
 }
@@ -25,10 +30,18 @@
   text-align: center;
 }
 
+.button {
+  appearance: none;
+
+  border-radius: var(--standard-border-radius);
+  color: #ffffff;
+  background-color: #000000;
+  border: none;
+}
+
 body {
   min-height: 100vh;
 
-  --standard-gap: 1.25rem;
   gap: var(--standard-gap);
 }
 
@@ -71,7 +84,7 @@ body {
   --preferred-width: 200px;
 
   text-align: center;
-  
+
   flex-basis: var(--preferred-width);
   min-width: min(var(--preferred-width), 100%);
 }
@@ -89,4 +102,12 @@ body {
 
     text-align: center;
   }
+}
+
+.restart {
+  padding: 0.5rem;
+}
+
+.opponent-toggle {
+  padding: 0.75rem 1rem;
 }
