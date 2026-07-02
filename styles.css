@@ -83,6 +83,10 @@ body {
   font-size: 1rem;
 }
 
-.game-feedback {
-  width: max-content;
+@media (max-width: 455px) {
+  .vs {
+    flex: 100%;
+
+    text-align: center;
+  }
 }

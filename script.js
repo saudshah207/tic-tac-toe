@@ -245,6 +245,7 @@ const displayController = (function () {
         : document.createElement("span");
 
     wrapper.classList.add("player-names", "flex", "flex-wrap");
+    vsElement.classList.add("vs");
     playerOneNameInput.classList.add("player-name", "player-name-input");
     if (isPlayingAgainstFriend) {
       playerTwoNameElement.classList.add("player-name", "player-name-input");
