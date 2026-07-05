@@ -125,7 +125,7 @@ function setUpTicTacToe() {
       if (isPlayerTakingTurnPlayerOne) isRoundComplete = false;
 
       if (wasTurnSuccessfullyPlayed) {
-        displayController.showFeedback(game.checkWinner());
+        displayController.showFeedback(checkWinner());
 
         playerTakingTurn = isPlayerTakingTurnPlayerOne ? playerTwo : playerOne;
 
