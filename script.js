@@ -179,22 +179,16 @@ function setUpTicTacToe() {
     function toggleOpponent(toggle) {
       if (!isPlayingAgainstComputer) {
         playAgainstComputer();
-
-        displayController.updatePlayerNamesHtml(
-          playerOne.getName(),
-          playerTwo.getName(),
-        );
       } else {
         playAgainstHuman();
-
-        displayController.updatePlayerNamesHtml(
-          playerOne.getName(),
-          playerTwo.getName(),
-          true,
-        );
       }
 
       isPlayingAgainstComputer = !isPlayingAgainstComputer;
+
+      displayController.updateOpponentNameElement(
+        playerTwo.getName(),
+        !isPlayingAgainstComputer,
+      );
 
       toggle.textContent = toggle.textContent.endsWith("computer")
         ? "Play against a friend"
@@ -211,7 +205,6 @@ function setUpTicTacToe() {
 
     return {
       play,
-      checkWinner,
       reset,
       toggleOpponent,
       updatePlayerName,
@@ -224,32 +217,22 @@ function setUpTicTacToe() {
     const boardElement = document.querySelector(".game-board"),
       feedbackElement = document.querySelector(".game-feedback");
 
-    const againstFriendPlayerNamesHtml = buildPlayerNamesHtml(true),
-      againstComputerPlayerNamesHtml = buildPlayerNamesHtml();
+    const playerNamesElement = document.querySelector(".player-names"),
+      humanOpponentNameElement = buildOpponentNameElement(true),
+      computerOpponentNameElement = buildOpponentNameElement();
 
-    function buildPlayerNamesHtml(isPlayingAgainstFriend = false) {
-      const wrapper = document.createElement("div"),
-        playerOneNameInput = document.createElement("input"),
-        vsElement = document.createElement("span"),
-        playerTwoNameElement = isPlayingAgainstFriend
-          ? document.createElement("input")
-          : document.createElement("span");
+    function buildOpponentNameElement(isPlayingAgainstHuman = false) {
+      const opponentNameElement = isPlayingAgainstHuman
+        ? document.createElement("input")
+        : document.createElement("span");
 
-      wrapper.classList.add("player-names", "flex", "flex-wrap");
-      vsElement.classList.add("vs");
-      playerOneNameInput.classList.add("player-name", "player-name-input");
-      if (isPlayingAgainstFriend) {
-        playerTwoNameElement.classList.add("player-name", "player-name-input");
-      } else playerTwoNameElement.classList.add("player-name");
+      if (isPlayingAgainstHuman) {
+        opponentNameElement.classList.add("player-name", "player-name-input");
+      } else opponentNameElement.classList.add("player-name");
 
-      playerOneNameInput.setAttribute("data-player", "one");
-      playerTwoNameElement.setAttribute("data-player", "two");
+      opponentNameElement.setAttribute("data-player", "two");
 
-      vsElement.textContent = "vs";
-
-      wrapper.append(playerOneNameInput, vsElement, playerTwoNameElement);
-
-      return wrapper;
+      return opponentNameElement;
     }
 
     function showFeedback(feedback) {
@@ -270,31 +253,21 @@ function setUpTicTacToe() {
       }
     }
 
-    function updatePlayerNamesHtml(
-      playerOneName,
-      playerTwoName,
-      isPlayingAgainstFriend = false,
+    function updateOpponentNameElement(
+      opponentName,
+      isPlayingAgainstHuman = false,
     ) {
-      const previousHtml = document.querySelector(".player-names");
-      previousHtml.remove();
+      playerNamesElement.querySelector("[data-player='two']").remove();
 
-      let html = againstComputerPlayerNamesHtml;
+      let opponentNameElement = computerOpponentNameElement;
+      opponentNameElement.textContent = opponentName;
 
-      let playerTwoNameElement = html.querySelector("[data-player='two']");
-      playerTwoNameElement.textContent = playerTwoName;
-
-      if (isPlayingAgainstFriend) {
-        html = againstFriendPlayerNamesHtml;
-
-        playerTwoNameElement = html.querySelector("[data-player='two']");
-        playerTwoNameElement.value = playerTwoName;
+      if (isPlayingAgainstHuman) {
+        opponentNameElement = humanOpponentNameElement;
+        opponentNameElement.value = opponentName;
       }
 
-      const playerOneNameElement = html.querySelector("[data-player='one']");
-
-      playerOneNameElement.value = playerOneName;
-
-      boardElement.insertAdjacentElement("afterend", html);
+      playerNamesElement.append(opponentNameElement);
     }
 
     function delegateClickEvent(event) {
@@ -328,7 +301,7 @@ function setUpTicTacToe() {
 
     document.addEventListener("change", changePlayerNames);
 
-    return { showFeedback, renderMark, resetBoard, updatePlayerNamesHtml };
+    return { showFeedback, renderMark, resetBoard, updateOpponentNameElement };
   })();
 
   function createPlayer(name, marker) {
